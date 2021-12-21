@@ -1,6 +1,7 @@
 #include "networkttask.h"
 #include <pthread.h>
 #include <stdio.h>
+#include "errno.h"
 #include "stdlib.h"
 #include "time.h"
 #include "unistd.h"
@@ -105,10 +106,10 @@ void NetworkTtask::date_request(void * parent)
             uint64_t timestamp = strtoull (value["data"]["t"].asString().c_str(),NULL,10);
             /*set system time*/
             struct timeval tv;
-            struct timezone tz;
             tv.tv_sec  = timestamp/1000;
-            tv.tv_usec = timestamp%1000;
-            settimeofday(&tv, &tz);
+            tv.tv_usec = 0;
+            std::cout<<settimeofday(&tv,NULL)<<std::endl;
+            perror("settimeofday");
         } catch(const std::exception& e) {
             cout <<e.what()<< " json parse is error state" << endl;
         }

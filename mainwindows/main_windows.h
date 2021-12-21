@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "time.h"
 #include "lvgl/lvgl.h"
+#include "networkttask.h"
 #include <string>
 using namespace std;
 struct TEMP
@@ -12,8 +13,10 @@ struct TEMP
 class main_windows
 {
 public:
-    main_windows();
+    main_windows(_lv_obj_t *parent=NULL);
+    void close_windows();
     void drawing();
+    void update(void);
     void update_time(void);
     void update_temp(void);
     void set_temp(double max, double min, double ave);
@@ -26,6 +29,8 @@ static  void zhiwen_event_clicked(lv_event_t* event);
     string weather;
 pthread_mutex_t lock;
 private:
+    _lv_obj_t *parent_windos;
+    _lv_obj_t *this_windos;
     /**
      * 控件
     */
@@ -45,6 +50,10 @@ private:
 
     /*变量*/
     struct tm time_date;
+    time_t cycle_count_temp,cycle_count_weather,cycle_count_time;
+    uint8_t windows_open_flg;
+
+    NetworkTtask task;
 
     
 };

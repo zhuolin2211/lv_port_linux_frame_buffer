@@ -9,7 +9,8 @@
 #include <sys/time.h>
 #include <main_windows.h>
 #include <networkttask.h>
-#define DISP_BUF_SIZE (128 * 1024)
+#include <menu_windows.h>
+#define DISP_BUF_SIZE (800 * 480)
 
 int main(void)
 {
@@ -33,6 +34,7 @@ int main(void)
     disp_drv.flush_cb   = fbdev_flush;
     disp_drv.hor_res    = 800;
     disp_drv.ver_res    = 480;
+    
     lv_disp_drv_register(&disp_drv);
 
     /*input initalize*/
@@ -45,19 +47,22 @@ int main(void)
 
     /*Create a Demo*/
     //lv_demo_widgets();
-    main_windows mw;
+
+    main_windows mw=main_windows();
     mw.drawing();
-    NetworkTtask task(&mw);
+    
+
+    // menu_windows menu_w=menu_windows();
+    // menu_w.drawing();
+
     printf("init evdev over\n");
     time_t t;
     time(&t);
     /*Handle LitlevGL tasks (tickless mode)*/
     while(1) {
-        mw.update_time();
-        mw.update_temp();
-        mw.update_weather();
+        mw.update();
         lv_task_handler();
-        usleep(1000*10);
+        usleep(1000);
         time_t t2=time(NULL);
         if(t2-t>5)
         {

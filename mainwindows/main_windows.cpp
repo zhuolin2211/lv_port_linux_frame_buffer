@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include "menu_windows.h"
 using namespace std;
 
 extern "C" {
@@ -21,22 +22,30 @@ extern "C" {
     
 }
 
-
-main_windows::main_windows()
+main_windows::main_windows(_lv_obj_t *parent): task(this)
 {
-     back_img = lv_img_create(lv_scr_act());
-     zhiwen_img = lv_img_create(lv_scr_act());;
-     time_label = lv_label_create(lv_scr_act());
-     date_label = lv_label_create(lv_scr_act());
-     temp_label = lv_label_create(lv_scr_act());
-     temp_up_label = lv_label_create(lv_scr_act());
-     temp_down_label = lv_label_create(lv_scr_act());
-     triangle_up_img = lv_img_create(lv_scr_act());
-     triangle_down_img = lv_img_create(lv_scr_act());
-     addr_label = lv_label_create(lv_scr_act());
-     addr_img = lv_img_create(lv_scr_act());
-     weather_label = lv_label_create(lv_scr_act());
-     weather_img = lv_img_create(lv_scr_act());
+    if(parent!=NULL)
+    {
+        parent_windos=parent;
+    }
+    else
+    {
+        parent_windos=lv_scr_act();
+
+    }
+     back_img = lv_img_create(parent_windos);
+     zhiwen_img = lv_img_create(parent_windos);
+     time_label = lv_label_create(parent_windos);
+     date_label = lv_label_create(parent_windos);
+     temp_label = lv_label_create(parent_windos);
+     temp_up_label = lv_label_create(parent_windos);
+     temp_down_label = lv_label_create(parent_windos);
+     triangle_up_img = lv_img_create(parent_windos);
+     triangle_down_img = lv_img_create(parent_windos);
+     addr_label = lv_label_create(parent_windos);
+     addr_img = lv_img_create(parent_windos);
+     weather_label = lv_label_create(parent_windos);
+     weather_img = lv_img_create(parent_windos);
 
      pthread_mutex_init(&this->lock,NULL);
 
@@ -44,17 +53,31 @@ main_windows::main_windows()
      temp.max_temp=0;
      temp.min_temp=0;
 
+     windows_open_flg=1;
+
+}
+
+void main_windows::close_windows()
+{
+    windows_open_flg=0;
+    lv_obj_clean(lv_scr_act());
 }
 void main_windows::zhiwen_event_clicked(lv_event_t* event)
 {
-    lv_obj_t* zhiwen_obj = (lv_obj_t*)lv_event_get_user_data(event);
+    main_windows* windows = (main_windows*)lv_event_get_user_data(event);
     if (lv_event_get_code(event) == LV_EVENT_PRESSED)
     {
-        lv_img_set_src(zhiwen_obj, &zhiwen_clicked);
+        lv_img_set_src(windows->zhiwen_img, &zhiwen_clicked);
     }
     if (lv_event_get_code(event) == LV_EVENT_RELEASED)
     {
-        lv_img_set_src(zhiwen_obj, &zhiwen);
+        lv_img_set_src(windows->zhiwen_img, &zhiwen);
+        //lv_obj_clean(lv_scr_act());
+        windows->close_windows();
+        menu_windows *menu=new menu_windows();
+        menu->drawing();
+        // lv_scr_load_anim(menu_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+
     }
 }
 void main_windows::drawing()
@@ -71,8 +94,8 @@ void main_windows::drawing()
     lv_obj_set_size(zhiwen_img, 64, 64);
     lv_obj_add_flag(zhiwen_img, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(zhiwen_img,LV_OBJ_FLAG_CHECKABLE);
-    lv_obj_add_event_cb(zhiwen_img, &main_windows::zhiwen_event_clicked, LV_EVENT_PRESSED, zhiwen_img);
-    lv_obj_add_event_cb(zhiwen_img, &main_windows::zhiwen_event_clicked, LV_EVENT_RELEASED, zhiwen_img);
+    lv_obj_add_event_cb(zhiwen_img, &main_windows::zhiwen_event_clicked, LV_EVENT_PRESSED, this);
+    lv_obj_add_event_cb(zhiwen_img, &main_windows::zhiwen_event_clicked, LV_EVENT_RELEASED, this);
 
     /*time*/
     static lv_style_t time_label_style;
@@ -198,25 +221,33 @@ void main_windows::drawing()
     lv_img_set_src(weather_img, &duoyun);
     lv_obj_set_pos(weather_img, 567, 422);
     lv_obj_set_size(weather_img, 32, 32);
+
 }
 
+void main_windows::update(void)
+{
+    if(windows_open_flg!=0)
+    {
+        update_time();
+        update_temp();
+        update_weather();
+    }
+}
 void  main_windows::update_time(void)
 {
-    struct tm now_date;
     time_t raw_time = time(NULL);
-    if (raw_time != time_date.tm_sec)
+    if (raw_time != cycle_count_time)
     {
-        memcpy(&now_date, localtime(&raw_time), sizeof(struct tm));
-        if (now_date.tm_sec != time_date.tm_sec)
-        {
-            memcpy(&time_date,&now_date, sizeof(struct tm));
+        cycle_count_time=raw_time;
+        memcpy(&time_date, localtime(&raw_time), sizeof(struct tm));
+
             string time;
             time.append("#2A82E4 ");
-            now_date.tm_hour >= 10 ? time.append(to_my_string(now_date.tm_hour) + ":") : time.append("0" + to_my_string(now_date.tm_hour)+":");
-            now_date.tm_min >= 10 ? time.append(to_my_string(now_date.tm_min)) : time.append("0" + to_my_string(now_date.tm_min));
+            time_date.tm_hour >= 10 ? time.append(to_my_string(time_date.tm_hour) + ":") : time.append("0" + to_my_string(time_date.tm_hour)+":");
+            time_date.tm_min >= 10 ? time.append(to_my_string(time_date.tm_min)) : time.append("0" + to_my_string(time_date.tm_min));
             lv_label_set_text(time_label, time.c_str());
             string date;
-            switch (now_date.tm_mon)
+            switch (time_date.tm_mon)
             {
             case 0:date.append("January"); break;
             case 1:date.append("February"); break;
@@ -231,10 +262,9 @@ void  main_windows::update_time(void)
             case 10:date.append("November"); break;
             case 11:date.append("December"); break;
             }
-            now_date.tm_mday > 9 ? date.append("-" + to_my_string(now_date.tm_mday )) : date.append("-0" + to_my_string(now_date.tm_mon));
-            date.append("-"+to_my_string(1900+now_date.tm_year));
+            time_date.tm_mday > 9 ? date.append("-" + to_my_string(time_date.tm_mday )) : date.append("-0" + to_my_string(time_date.tm_mon));
+            date.append("-"+to_my_string(1900+time_date.tm_year));
             lv_label_set_text(date_label, ("#707070 "+date).c_str());
-        }
     }
     
 }
@@ -242,6 +272,11 @@ void main_windows::update_temp(void)
 {
     struct TEMP T;
     /*http get temp*/
+    time_t raw_time = time(NULL);
+    if (raw_time != cycle_count_temp)
+    {
+        cycle_count_temp=raw_time;
+    printf("call %d\n",time_date.tm_sec);
     /*互斥访问*/
     pthread_mutex_lock(&this->lock);
     memcpy(&T, &temp, sizeof(struct TEMP));
@@ -250,15 +285,21 @@ void main_windows::update_temp(void)
     lv_label_set_text(temp_label, ("#2A82E4 "+ to_my_string(T.ave_temp)+"°C").c_str());
     lv_label_set_text(temp_up_label, ("#707070 " + to_my_string(T.max_temp) + "°C").c_str());
     lv_label_set_text(temp_down_label, ("#707070 " + to_my_string(T.min_temp) + "°C").c_str());
+    }
 }
 void main_windows::update_weather(void)
 {
     /*互斥访问*/
+    time_t raw_time = time(NULL);
+    if (raw_time != cycle_count_weather)
+    {
+        cycle_count_weather=raw_time;
     string wea="12";
     pthread_mutex_lock(&this->lock);
     wea=this->weather;
     pthread_mutex_unlock(&this->lock);
     lv_label_set_text(weather_label, ("#707070 "+wea).c_str());
+    }
 }
 void main_windows::set_weather(string wea)
 {
