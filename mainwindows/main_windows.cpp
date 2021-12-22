@@ -76,7 +76,7 @@ void main_windows::zhiwen_event_clicked(lv_event_t* event)
         windows->close_windows();
         menu_windows *menu=new menu_windows();
         menu->drawing();
-        // lv_scr_load_anim(menu_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+        //lv_scr_load_anim(menu_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 
     }
 }
