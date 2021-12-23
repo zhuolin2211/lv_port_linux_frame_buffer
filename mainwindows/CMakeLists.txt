@@ -27,9 +27,16 @@ include_directories(./http)
 aux_source_directory(./NetworkTask  NETWORKTASK)
 include_directories(./NetworkTask)
 
+aux_source_directory(./playaudio PLAYAUDIO)
+include_directories(./playaudio)
+include_directories(./playaudio/rtrudio)
+link_directories(./playaudio/rtrudio)
+link_libraries(/home/sun/project/desktop_xiaofu/desktop_xiaofu/lv_port_linux_frame_buffer/mainwindows/playaudio/rtrudio/librtaudio.so.6.0.1)
+
 
 add_executable(main_windows ${FONT_SRC} ${IMG_SRC} ${MAIN_WINDOWS_SRC}
-                            ${NETWORKTASK})
+                            ${NETWORKTASK}
+                            ${PLAYAUDIO})
 
 
 target_link_libraries(main_windows lv_drivers)
