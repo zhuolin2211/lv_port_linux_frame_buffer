@@ -10,6 +10,8 @@
 #include <main_windows.h>
 #include <networkttask.h>
 #include <menu_windows.h>
+#include "playaudio.h"
+#include "music_player.h"
 #define DISP_BUF_SIZE (800 * 480)
 
 int main(void)
@@ -48,19 +50,24 @@ int main(void)
     /*Create a Demo*/
     //lv_demo_widgets();
 
-    main_windows mw=main_windows();
-    mw.drawing();
+    // main_windows mw=main_windows();
+    // mw.drawing();
     
+    // Playaudio play("/root/Mojito.wav");
+    // play.start_play();
 
     // menu_windows menu_w=menu_windows();
     // menu_w.drawing();
+
+    music_player player=music_player();
+    player.drawing();
 
     printf("init evdev over\n");
     time_t t;
     time(&t);
     /*Handle LitlevGL tasks (tickless mode)*/
     while(1) {
-        mw.update();
+        // mw.update();
         lv_task_handler();
         usleep(1000);
         time_t t2=time(NULL);

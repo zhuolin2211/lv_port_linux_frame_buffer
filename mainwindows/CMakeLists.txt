@@ -33,10 +33,15 @@ include_directories(./playaudio/rtrudio)
 link_directories(./playaudio/rtrudio)
 link_libraries(/home/sun/project/desktop_xiaofu/desktop_xiaofu/lv_port_linux_frame_buffer/mainwindows/playaudio/rtrudio/librtaudio.so.6.0.1)
 
+aux_source_directory(./musicplayer  MUSICPLAYER)
+include_directories(./musicplayer)
+
+
 
 add_executable(main_windows ${FONT_SRC} ${IMG_SRC} ${MAIN_WINDOWS_SRC}
                             ${NETWORKTASK}
-                            ${PLAYAUDIO})
+                            ${PLAYAUDIO}
+                            ${MUSICPLAYER})
 
 
 target_link_libraries(main_windows lv_drivers)
