@@ -49,6 +49,7 @@ int main(void)
 
     /*Create a Demo*/
     //lv_demo_widgets();
+    // lv_demo_music();
 
     // main_windows mw=main_windows();
     // mw.drawing();

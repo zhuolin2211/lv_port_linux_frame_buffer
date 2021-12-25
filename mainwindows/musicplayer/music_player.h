@@ -11,6 +11,7 @@ public:
     ~music_player();
     void drawing();
     void close_windows();
+    void add_music(lv_obj_t* parent);
 
 private:
 /*创建该界面的父对象，通常为屏幕对象，当为自定义对象时用它作为动画的参数*/
@@ -26,6 +27,8 @@ private:
    lv_obj_t *next_push_img;
    lv_obj_t *stop_push_img;
    lv_obj_t * progress_bar;
+
+    lv_timer_t *circular_time;
    
 
 
@@ -33,6 +36,11 @@ private:
   uint8_t windows_open_flg;
 
   /*播放器的内部变量*/
+
+  uint16_t circular_angle;
+
+
+   static void circular_time_cb(struct _lv_timer_t * timer);
 
 
     
