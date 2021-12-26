@@ -24,16 +24,18 @@ typedef signed short MY_TYPE;
 class Playaudio {
 
   public:
-    Playaudio(const string & filename);
+    Playaudio();
     void start_play(void);
     void suspend_play(void);
     void stop_play(void);
+    void wait_stop_play(void);
     unsigned long get_StrameSize(void);
     unsigned long get_totaltime_s(void);
-
+  void start(const string & filename);
   protected:
-    void start();
+    
     static void *run(void* par);
+    void stop_run();
     void my_exit(audio_error code);
     void progress_signal(unsigned char pro);
     unsigned char get_progress(void);

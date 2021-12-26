@@ -6,34 +6,33 @@
 #include "stdlib.h"
 #include "unistd.h"
 #include "string.h"
-Playaudio::Playaudio(const string & filename)
+Playaudio::Playaudio()
 {
-    audio_file      = filename;
-    channels        = 2;
-    sample_rate     = 48100;
-    bufferFrames    = 512;
-    device          = 0;
-    offset          = 0;
+    channels     = 2;
+    sample_rate  = 48100;
+    bufferFrames = 512;
+    device       = 0;
+    offset       = 0;
 
     play_flg        = 0;
     play_flg_change = 0;
     play_time       = 0;
 
-    play_progress=0;
-    play_done_flg=0;
+    play_progress = 0;
+    play_done_flg = 0;
     pthread_mutex_init(&lock, NULL);
-    this->start();
 }
-void Playaudio::start()
+void Playaudio::start(const string & filename)
 {
-    int ret = pthread_create(&thread_task_id, NULL, &Playaudio::run, this);
+    audio_file = filename;
+    int ret    = pthread_create(&thread_task_id, NULL, &Playaudio::run, this);
     if(ret != 0) {
         printf("creat pthread failed %s %d\n", __FUNCTION__, __LINE__);
     }
 }
-void *Playaudio::run(void* par)
+void * Playaudio::run(void * par)
 {
-    Playaudio* parent=(Playaudio*)par;
+    Playaudio * parent = (Playaudio *)par;
     /*open file*/
     parent->data.fd = fopen(parent->audio_file.c_str(), "rb");
     if(!parent->data.fd) {
@@ -48,7 +47,8 @@ void *Playaudio::run(void* par)
     parent->oParams.deviceId     = parent->dac.getDefaultOutputDevice();
 
     try {
-        parent->dac.openStream(&parent->oParams, NULL, FORMAT, parent->sample_rate, &parent->bufferFrames, &stream_callback, (void *)&parent->data);
+        parent->dac.openStream(&parent->oParams, NULL, FORMAT, parent->sample_rate, &parent->bufferFrames,
+                               &stream_callback, (void *)&parent->data);
 
     } catch(RtAudioError & e) {
         std::cout << '\n' << e.getMessage() << '\n' << std::endl;
@@ -56,13 +56,13 @@ void *Playaudio::run(void* par)
         parent->dac.closeStream();
         parent->my_exit(openstream_error);
     }
-
+    parent->play_done_flg = 1;
     while(1) {
         usleep(50 * 1000); // wake every 100 ms to check if we're done
         parent->progress_signal((parent->dac.getStreamTime() / (double)parent->play_time) * 100);
         if(parent->play_operation() < 0) {
             parent->dac.closeStream();
-            return (void*)NULL;
+            return (void *)NULL;
         }
     }
 }
@@ -135,6 +135,18 @@ void Playaudio::stop_play(void)
     }
     pthread_mutex_unlock(&lock);
 }
+void Playaudio::wait_stop_play(void)
+{
+    stop_play();
+    while(1) {
+        pthread_mutex_lock(&lock);
+        if(play_done_flg == 0) {
+            pthread_mutex_unlock(&lock);
+            break;
+        }
+        pthread_mutex_unlock(&lock);
+    }
+}
 int Playaudio::play_operation(void)
 {
     if(pthread_mutex_trylock(&lock) == 0) {
@@ -143,14 +155,18 @@ int Playaudio::play_operation(void)
             switch(play_flg) {
                 case 0: // stop
                 {
+
                     dac.abortStream();
                     std::cout << "stop play music\r\n";
                     my_exit(no_error);
+                    fclose(data.fd);
+                    play_done_flg = 0;
                     pthread_mutex_unlock(&lock);
                     return -1;
                 }
                 case 1: // start
                 {
+                    play_done_flg = 1;
                     dac.startStream();
                     std::cout << "start play music\r\n";
                     break;
@@ -199,14 +215,14 @@ unsigned long Playaudio::get_totaltime_s(void)
 void Playaudio::progress_signal(unsigned char pro)
 {
     pthread_mutex_lock(&lock);
-    play_progress=pro;
+    play_progress = pro;
     pthread_mutex_unlock(&lock);
 }
 unsigned char Playaudio::get_progress(void)
 {
     unsigned char pro;
     pthread_mutex_lock(&lock);
-    pro=play_progress;
+    pro = play_progress;
     pthread_mutex_unlock(&lock);
     return pro;
 }

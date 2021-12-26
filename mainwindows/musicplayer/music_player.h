@@ -2,6 +2,7 @@
 #include "time.h"
 #include "lvgl/lvgl.h"
 #include <string>
+#include "playaudio.h"
 using namespace std;
 
 class music_player
@@ -11,7 +12,7 @@ public:
     ~music_player();
     void drawing();
     void close_windows();
-    void add_music(lv_obj_t* parent);
+    void add_music(lv_obj_t* parent,string& music_name,uint16_t music_sec);
 
 private:
 /*创建该界面的父对象，通常为屏幕对象，当为自定义对象时用它作为动画的参数*/
@@ -39,8 +40,11 @@ private:
 
   uint16_t circular_angle;
 
+ Playaudio * player_deive;
+ vector<string>music_file;
 
    static void circular_time_cb(struct _lv_timer_t * timer);
+   static void music_list_button_cb(lv_event_t * e);
 
 
     
