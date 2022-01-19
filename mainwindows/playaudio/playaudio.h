@@ -32,14 +32,16 @@ class Playaudio {
     unsigned long get_StrameSize(void);
     unsigned long get_totaltime_s(void);
   void start(const string & filename);
+  unsigned char get_progress(void);
+    unsigned char is_play_done();
+    unsigned char is_playing();
   protected:
     
     static void *run(void* par);
     void stop_run();
     void my_exit(audio_error code);
     void progress_signal(unsigned char pro);
-    unsigned char get_progress(void);
-    unsigned char is_play_done();
+    
 
   private:
     string audio_file;

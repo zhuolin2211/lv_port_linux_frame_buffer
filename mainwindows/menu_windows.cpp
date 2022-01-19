@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+
+#include "music_player.h"
 using namespace std;
 
 extern "C" {
@@ -28,30 +30,35 @@ extern "C" {
 
 menu_windows::menu_windows(_lv_obj_t *parent)
 {
-    if(parent!=NULL)
-    {
-        parent_windos=parent;
+    parent_screen=parent;
+    Current_screen = lv_obj_create(NULL);
+    lv_scr_load(Current_screen);
+    lv_obj_set_pos(Current_screen, 0, 0);
+    lv_obj_set_size(Current_screen, 800, 480);
+    windows_open_flg=1;
 
-    }
-    else
-    {
-        parent_windos=lv_scr_act();
+}
+menu_windows::~menu_windows()
+{
 
-    }
+}
 
-    back_img=lv_img_create(parent_windos);
+void menu_windows::drawing()
+{
 
-    menu_button_0x0 = lv_btn_create(parent_windos);
-    menu_button_0x1 = lv_btn_create(parent_windos);
-    menu_button_0x2 = lv_btn_create(parent_windos);
+    back_img=lv_img_create(Current_screen);
 
-    menu_button_1x0 = lv_btn_create(parent_windos);
-    menu_button_1x1 = lv_btn_create(parent_windos);
-    menu_button_1x2 = lv_btn_create(parent_windos);
+    menu_button_0x0 = lv_btn_create(Current_screen);
+    menu_button_0x1 = lv_btn_create(Current_screen);
+    menu_button_0x2 = lv_btn_create(Current_screen);
 
-    menu_button_2x0 = lv_btn_create(parent_windos);
-    menu_button_2x1 = lv_btn_create(parent_windos);
-    menu_button_2x2 = lv_btn_create(parent_windos);
+    menu_button_1x0 = lv_btn_create(Current_screen);
+    menu_button_1x1 = lv_btn_create(Current_screen);
+    menu_button_1x2 = lv_btn_create(Current_screen);
+
+    menu_button_2x0 = lv_btn_create(Current_screen);
+    menu_button_2x1 = lv_btn_create(Current_screen);
+    menu_button_2x2 = lv_btn_create(Current_screen);
 
     menu_img_0x0 = lv_img_create(menu_button_0x0);
     menu_img_0x1 = lv_img_create(menu_button_0x1);
@@ -78,19 +85,6 @@ menu_windows::menu_windows(_lv_obj_t *parent)
     menu_label_2x1 = lv_label_create(menu_button_2x1);
     menu_label_2x2 = lv_label_create(menu_button_2x2);
 
-
-
-
-    windows_open_flg=1;
-
-}
-menu_windows::~menu_windows()
-{
-
-}
-
-void menu_windows::drawing()
-{
     lv_img_set_src(back_img, &back_menu);
     lv_obj_set_pos(back_img, 0, 0);
     lv_obj_set_size(back_img, 800, 480);
@@ -112,6 +106,7 @@ void menu_windows::drawing()
     lv_obj_set_align(menu_label_0x0,LV_ALIGN_BOTTOM_LEFT);
     lv_style_set_text_font(&text_style,&font_24_ch);
     lv_obj_add_style(menu_label_0x0,&text_style,LV_STATE_DEFAULT);
+    lv_obj_add_event_cb(menu_button_0x0,&menu_windows::music_button_cb,LV_EVENT_CLICKED,this);
 
 
     
@@ -225,5 +220,20 @@ void menu_windows::drawing()
 void menu_windows::close_windows()
 {
     windows_open_flg=0;
-    lv_obj_clean(lv_scr_act());
+    lv_obj_clean(this->Current_screen);
+    lv_obj_del(this->Current_screen);
+}
+void menu_windows::hide_windows()
+{
+    windows_open_flg=0;
+    lv_obj_add_flag(this->Current_screen,LV_OBJ_FLAG_HIDDEN);
+}
+
+void menu_windows::music_button_cb(lv_event_t * e)
+{
+    printf("music_button_cb\n");
+    menu_windows* menu = (menu_windows*)lv_event_get_user_data(e);
+    menu->hide_windows();
+    music_player *player= new music_player(menu->Current_screen);
+    player->drawing();
 }

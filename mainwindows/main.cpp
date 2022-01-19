@@ -51,8 +51,8 @@ int main(void)
     //lv_demo_widgets();
     // lv_demo_music();
 
-    // main_windows mw=main_windows();
-    // mw.drawing();
+    main_windows mw=main_windows();
+    mw.drawing();
     
     // Playaudio play("/root/Mojito.wav");
     // play.start_play();
@@ -60,15 +60,15 @@ int main(void)
     // menu_windows menu_w=menu_windows();
     // menu_w.drawing();
 
-    music_player player=music_player();
-    player.drawing();
+    // music_player player=music_player();
+    // player.drawing();
 
     printf("init evdev over\n");
     time_t t;
     time(&t);
     /*Handle LitlevGL tasks (tickless mode)*/
     while(1) {
-        // mw.update();
+        mw.update();
         lv_task_handler();
         usleep(1000);
         time_t t2=time(NULL);

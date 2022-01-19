@@ -24,28 +24,24 @@ extern "C" {
 
 main_windows::main_windows(_lv_obj_t *parent): task(this)
 {
-    if(parent!=NULL)
-    {
-        parent_windos=parent;
-    }
-    else
-    {
-        parent_windos=lv_scr_act();
-
-    }
-     back_img = lv_img_create(parent_windos);
-     zhiwen_img = lv_img_create(parent_windos);
-     time_label = lv_label_create(parent_windos);
-     date_label = lv_label_create(parent_windos);
-     temp_label = lv_label_create(parent_windos);
-     temp_up_label = lv_label_create(parent_windos);
-     temp_down_label = lv_label_create(parent_windos);
-     triangle_up_img = lv_img_create(parent_windos);
-     triangle_down_img = lv_img_create(parent_windos);
-     addr_label = lv_label_create(parent_windos);
-     addr_img = lv_img_create(parent_windos);
-     weather_label = lv_label_create(parent_windos);
-     weather_img = lv_img_create(parent_windos);
+    parent_screen=parent;
+    Current_screen = lv_obj_create(NULL);
+    lv_scr_load(Current_screen);
+    lv_obj_set_pos(Current_screen, 0, 0);
+    lv_obj_set_size(Current_screen, 800, 480);
+     back_img = lv_img_create(Current_screen);
+     zhiwen_img = lv_img_create(Current_screen);
+     time_label = lv_label_create(Current_screen);
+     date_label = lv_label_create(Current_screen);
+     temp_label = lv_label_create(Current_screen);
+     temp_up_label = lv_label_create(Current_screen);
+     temp_down_label = lv_label_create(Current_screen);
+     triangle_up_img = lv_img_create(Current_screen);
+     triangle_down_img = lv_img_create(Current_screen);
+     addr_label = lv_label_create(Current_screen);
+     addr_img = lv_img_create(Current_screen);
+     weather_label = lv_label_create(Current_screen);
+     weather_img = lv_img_create(Current_screen);
 
      pthread_mutex_init(&this->lock,NULL);
 
@@ -55,12 +51,20 @@ main_windows::main_windows(_lv_obj_t *parent): task(this)
 
      windows_open_flg=1;
 
+     menu=NULL;
+
 }
 
 void main_windows::close_windows()
 {
     windows_open_flg=0;
-    lv_obj_clean(lv_scr_act());
+    lv_obj_clean(this->Current_screen);
+    lv_obj_del(this->Current_screen);
+}
+void main_windows::hide_windows()
+{
+    windows_open_flg=0;
+    lv_obj_add_flag(this->Current_screen,LV_OBJ_FLAG_HIDDEN);
 }
 void main_windows::zhiwen_event_clicked(lv_event_t* event)
 {
@@ -73,11 +77,10 @@ void main_windows::zhiwen_event_clicked(lv_event_t* event)
     {
         lv_img_set_src(windows->zhiwen_img, &zhiwen);
         //lv_obj_clean(lv_scr_act());
-        windows->close_windows();
-        menu_windows *menu=new menu_windows();
-        menu->drawing();
+        windows->hide_windows();
+            windows->menu=new menu_windows(windows->Current_screen);
+        windows->menu->drawing();
         //lv_scr_load_anim(menu_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-
     }
 }
 void main_windows::drawing()

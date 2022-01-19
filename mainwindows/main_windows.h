@@ -2,6 +2,7 @@
 #include "time.h"
 #include "lvgl/lvgl.h"
 #include "networkttask.h"
+#include "menu_windows.h"
 #include <string>
 using namespace std;
 struct TEMP
@@ -15,6 +16,7 @@ class main_windows
 public:
     main_windows(_lv_obj_t *parent=NULL);
     void close_windows();
+    void hide_windows();
     void drawing();
     void update(void);
     void update_time(void);
@@ -31,6 +33,13 @@ pthread_mutex_t lock;
 private:
     _lv_obj_t *parent_windos;
     _lv_obj_t *this_windos;
+
+    /*
+    * view
+    */
+    menu_windows *menu;
+    lv_obj_t *parent_screen;
+    lv_obj_t *Current_screen;
     /**
      * 控件
     */

@@ -25,6 +25,7 @@ Playaudio::Playaudio()
 void Playaudio::start(const string & filename)
 {
     audio_file = filename;
+    printf("--------------------------\n");
     int ret    = pthread_create(&thread_task_id, NULL, &Playaudio::run, this);
     if(ret != 0) {
         printf("creat pthread failed %s %d\n", __FUNCTION__, __LINE__);
@@ -51,17 +52,21 @@ void * Playaudio::run(void * par)
                                &stream_callback, (void *)&parent->data);
 
     } catch(RtAudioError & e) {
-        std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+        std::cout << '\n' << e.getMessage() << '\n' << __LINE__ << __FILE__<< std::endl;
         fclose(parent->data.fd);
-        parent->dac.closeStream();
         parent->my_exit(openstream_error);
+         pthread_mutex_lock(&parent->lock);
+        parent->play_done_flg=0;
+         pthread_mutex_unlock(&parent->lock);
+        return (void*)0;
     }
+     pthread_mutex_lock(&parent->lock);
     parent->play_done_flg = 1;
+     pthread_mutex_unlock(&parent->lock);
     while(1) {
-        usleep(50 * 1000); // wake every 100 ms to check if we're done
+        usleep( 1000); // wake every 100 ms to check if we're done
         parent->progress_signal((parent->dac.getStreamTime() / (double)parent->play_time) * 100);
         if(parent->play_operation() < 0) {
-            parent->dac.closeStream();
             return (void *)NULL;
         }
     }
@@ -106,6 +111,7 @@ void Playaudio::my_exit(audio_error code)
             std::cout << "unknow error\r\n";
         }
     }
+
     play_flg = 0;
 }
 void Playaudio::start_play(void)
@@ -145,6 +151,7 @@ void Playaudio::wait_stop_play(void)
             break;
         }
         pthread_mutex_unlock(&lock);
+        usleep(10);
     }
 }
 int Playaudio::play_operation(void)
@@ -157,6 +164,7 @@ int Playaudio::play_operation(void)
                 {
 
                     dac.abortStream();
+                    dac.closeStream();
                     std::cout << "stop play music\r\n";
                     my_exit(no_error);
                     fclose(data.fd);
@@ -181,6 +189,8 @@ int Playaudio::play_operation(void)
         } else {
             if(dac.isStreamRunning() == false && (play_flg == 1)) {
                 this->play_flg = 0;
+                play_done_flg = 0;
+                printf("%s %s \n",__LINE__,__FILE__);
                 my_exit(no_error);
                 pthread_mutex_unlock(&lock);
                 return -1;
@@ -230,4 +240,9 @@ unsigned char Playaudio::get_progress(void)
 unsigned char Playaudio::is_play_done()
 {
     return play_flg;
+}
+
+unsigned char Playaudio::is_playing()
+{
+    return dac.isStreamRunning();
 }
