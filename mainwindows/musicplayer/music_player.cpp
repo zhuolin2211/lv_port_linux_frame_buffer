@@ -350,6 +350,7 @@ void music_player::close_windows()
     windows_open_flg = 0;
     lv_obj_clean(this->Current_screen);
     lv_obj_del(this->Current_screen);
+    lv_timer_del(circular_time);
 }
 void music_player::circular_time_cb(struct _lv_timer_t * timer)
 {
